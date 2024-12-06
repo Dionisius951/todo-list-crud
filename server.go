@@ -37,6 +37,8 @@ func methodHanlder(w http.ResponseWriter, r *http.Request) {
 		addTodos(w, r)
 	case http.MethodPut:
 		updateTodos(w, r)
+	case http.MethodDelete:
+		deleteTodos(w, r)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
@@ -117,6 +119,30 @@ func updateTodos(w http.ResponseWriter, r *http.Request) {
 
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode("Berhasil Memperbarui Todo")
+			return
+		}
+	}
+}
+
+func deleteTodos(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var id = r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "ID is required", http.StatusBadRequest)
+	}
+	Id, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "ID is required", http.StatusBadRequest)
+	}
+	for index, item := range todos {
+		if item.Id == Id {
+			todos = append(todos[:index], todos[index+1:]...)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode("Berhasil Menghapus Todo")
 			return
 		}
 	}
