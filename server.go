@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type todo struct {
@@ -23,8 +24,6 @@ var todos = []todo{
 
 func main() {
 	http.HandleFunc("/todos", methodHanlder)
-	// http.HandleFunc("/todos", updateTodos)
-	// http.HandleFunc("/todos", deleteTodos)
 
 	fmt.Println("Server Running On PORT 9000")
 	log.Fatal(http.ListenAndServe(":9000", nil))
@@ -33,9 +32,11 @@ func main() {
 func methodHanlder(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		getTodos(w,r)
+		getTodos(w, r)
 	case http.MethodPost:
-		addTodos(w,r)
+		addTodos(w, r)
+	case http.MethodPut:
+		updateTodos(w, r)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
@@ -81,4 +82,42 @@ func addTodos(w http.ResponseWriter, r *http.Request) {
 
 	todos = append(todos, newTodos)
 	json.NewEncoder(w).Encode("Berhasil Menambahkan Todo")
+}
+
+func updateTodos(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var id = r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "ID is required", http.StatusBadRequest)
+	}
+	Id, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "ID is required", http.StatusBadRequest)
+	}
+
+	var UdpTodos todo
+	err = json.NewDecoder(r.Body).Decode(&UdpTodos)
+	if err != nil {
+		http.Error(w, "Invalid Body Request", http.StatusBadRequest)
+		return
+	}
+
+	for index, item := range todos {
+		if item.Id == Id {
+			if UdpTodos.Value != "" {
+				todos[index].Value = UdpTodos.Value
+			}
+			if todos[index].Status != UdpTodos.Status {
+				todos[index].Status = UdpTodos.Status
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode("Berhasil Memperbarui Todo")
+			return
+		}
+	}
 }
