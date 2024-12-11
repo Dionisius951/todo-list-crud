@@ -58,7 +58,9 @@ Inputkan data value yang ingin diubah. Jika hanya ingin mengubah status, kirim d
 Jika ingin memperbarui seluruh informasi tugas, kirim data seperti ini:
 
 ```json
-"value": "Value todos baru",
+{
+    "value": "Input value todos baru",
+}
 ```
 
 Respons jika berhasil memperbarui data:
